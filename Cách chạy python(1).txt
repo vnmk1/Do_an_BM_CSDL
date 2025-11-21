@@ -1,0 +1,10 @@
+B1: Tải thư viện oracle, flash, flash-cors về
+B2: Vào cmd gõ cd vào nơi thư mục chứa file API.py sau do gõ python API.py
+Ví dụ: 
+"C:\Users\vungu>D:
+
+D:\>cd "Semester 5\BM_CSDL\Đồ Án\EL_w\EL_w"
+
+D:\Semester 5\BM_CSDL\Đồ án\EL_w\EL_w>python API.py"
+
+vào file index chạy giao diện 

@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LearnLingo</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="st.css">
+</head>
+<body>
+    <header class="header">
+        <nav class="nav-container">
+            <div class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                LearnLingo
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#" onclick="showSection('home')">Trang chủ</a></li>
+                <li><a href="#" onclick="showSection('courses')">Khóa học</a></li>
+                <li><a href="#" onclick="showSection('dashboard')" id="dashboardLink" style="display:none;">Dashboard</a></li>
+            </ul>
+
+            <!-- (SỬA LỖI 1) Thêm nút toggle cho menu mobile -->
+            <button class="menu-toggle" style="display: none;">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <div class="user-actions">
+                <div id="guestActions">
+                    <button class="btn-login" onclick="openModal('login')">Đăng nhập</button>
+                    <button class="btn-register" onclick="openModal('register')">Đăng ký</button>
+                </div>
+                <div class="user-info" id="userInfo">
+                    <span id="userName"></span>
+                    <div class="user-avatar" id="userAvatar" onclick="toggleUserDropdown()">U</div>
+                    
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="user-dropdown-header">
+                            <div class="user-dropdown-avatar" id="dropdownAvatar">U</div>
+                            <div class="user-dropdown-name" id="dropdownName">Người dùng</div>
+                            <div class="user-dropdown-email" id="dropdownEmail">user@email.com</div>
+                            <div class="user-dropdown-role" id="dropdownRole">Học viên</div>
+                        </div>
+                        
+                        <div class="user-dropdown-stats">
+                            <div class="user-stat-item">
+                                <span class="user-stat-number" id="userCoursesCount">0</span>
+                                <span class="user-stat-label">Khóa học</span>
+                            </div>
+                            <div class="user-stat-item">
+                                <span class="user-stat-number" id="userProgressAvg">0%</span>
+                                <span class="user-stat-label">Tiến độ</span>
+                            </div>
+                        </div>
+                        
+                        <div class="user-dropdown-menu">
+                            <button class="user-dropdown-item" onclick="showSection('dashboard')">
+                                <i class="fas fa-tachometer-alt"></i>
+                                <span>Dashboard</span>
+                            </button>
+                            <button class="user-dropdown-item" onclick="openProfileModal()">
+                                <i class="fas fa-user-edit"></i>
+                                <span>Thông tin cá nhân</span>
+                            </button>
+                            
+                            <!-- (SỬA LỖI 2) Xóa nút "Khóa học của tôi" gây nhầm lẫn -->
+                            
+                            <div class="user-dropdown-divider"></div>
+                            <button class="use,r-dropdown-item" onclick="openSettingsModal()">
+                                <i class="fas fa-cog"></i>
+                                <span>Cài đặt</span>
+                            </button>
+                            <button class="user-dropdown-item" onclick="logout()">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Đăng xuất</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div id="homeSection">
+        <section class="hero">
+            <h1>Học Ngoại Ngữ Hiệu Quả</h1>
+            <p>Nền tảng học trực tuyến với phương pháp tiên tiến, giúp bạn thành thạo ngoại ngữ nhanh chóng</p>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Tìm kiếm khóa học...">
+                <button onclick="searchCourses()"><i class="fas fa-search"></i> Tìm kiếm</button>
+            </div>
+        </section>
+
+        <div class="container">
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalStudents">0</div>
+                    <div class="stat-label">Học viên</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalCourses">0</div>
+                    <div class="stat-label">Khóa học</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalTeachers">0</div>
+                    <div class="stat-label">Giảng viên</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalLanguages">0</div>
+                    <div class="stat-label">Ngôn ngữ</div>
+                </div>
+            </div>
+
+            <section id="courses">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 class="section-title" style="margin-bottom: 0;">Khóa Học Hiện Có</h2>
+                    
+                    <div id="teacherActions" style="display: none;">
+                        <button onclick="openModal('createCourse')" style="background: #48bb78; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-plus-circle"></i> Tạo Khóa Học
+                        </button>
+                    </div>
+                </div>
+                <div class="courses-grid" id="coursesList"></div>
+            </section>
+        </div>
+    </div>
+
+    <div id="dashboardSection" class="dashboard container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Dashboard Học Tập</h1>
+            <p>Theo dõi tiến độ và quản lý khóa học của bạn</p>
+        </div>
+        <h2 class="section-title">Khóa Học Đã Đăng Ký</h2>
+        <div class="enrolled-courses" id="enrolledCoursesList"></div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Về LearnLingo</h3>
+                <p>Nền tảng học ngoại ngữ hàng đầu Việt Nam với phương pháp giảng dạy hiện đại và hiệu quả.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Liên Hệ</h3>
+                <ul>
+                    <li><i class="fas fa-phone"></i> 1900 xxxx</li>
+                    <li><i class="fas fa-envelope"></i> support@learnlingo.vn</li>
+                    <li><i class="fas fa-map-marker-alt"></i> TP. Hồ Chí Minh</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 LearnLingo. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('login')">&times;</span>
+            <h2>Đăng Nhập</h2>
+            <div id="loginAlert"></div>
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>Tên đăng nhập</label>
+                    <input type="text" id="loginUsername" required placeholder="username">
+                </div>
+                <div class="form-group">
+                    <label>Mật khẩu</label>
+                    <input type="password" id="loginPassword" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn-submit">Đăng nhập</button>
+                <div style="text-align: center; margin-top: 15px;">
+                    <a href="#" onclick="event.preventDefault(); openModal('forgot');" style="color: #667eea; text-decoration: none;">Quên mật khẩu?</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('register')">&times;</span>
+            <h2>Đăng Ký</h2>
+            <div id="registerAlert"></div>
+            <form onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label>Tên đăng nhập</label>
+                    <input type="text" id="regUsername" required placeholder="username">
+                </div>
+                <div class="form-group">
+                    <label>Họ và tên</label>
+                    <input type="text" id="regFullName" required placeholder="Nguyễn Văn A">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="regEmail" required placeholder="example@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Mật khẩu</label>
+                    <input type="password" id="regPassword" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn-submit">Đăng ký</button>
+                <div style="text-align: center; margin-top: 15px;">
+                    <span style="color: #718096;">Đã có tài khoản? </span>
+                    <a href="#" onclick="event.preventDefault(); openModal('login');" style="color: #667eea; text-decoration: none; font-weight: 600;">Đăng nhập</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="forgotModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('forgot')">&times;</span>
+            <h2>Quên Mật Khẩu</h2>
+            <div id="forgotAlert"></div>
+            
+            <div id="forgotStep1">
+                <p style="color: #718096; margin-bottom: 20px;">Nhập email hoặc tên đăng nhập để nhận Reset Token</p>
+                <form onsubmit="handleForgotPassword(event)">
+                    <div class="form-group">
+                        <label>Email hoặc Tên đăng nhập</label>
+                        <input type="text" id="forgotIdentifier" required placeholder="email@example.com">
+                    </div>
+                    <button type="submit" class="btn-submit">Gửi yêu cầu Token</button> 
+                    <div style="text-align: center; margin-top: 15px;">
+                        <a href="#" onclick="event.preventDefault(); openModal('login');" style="color: #667eea; text-decoration: none;">Quay lại đăng nhập</a>
+                    </div>
+                </form>
+            </div>
+            
+            <div id="forgotStep3" style="display: none;">
+                <p style="color: #718096; margin-bottom: 20px;">
+                    Kiểm tra console server (demo) để lấy Token.
+                    <br>Dán token vào đây và tạo mật khẩu mới.
+                </p>
+                <form onsubmit="handleResetPassword(event)">
+                    
+                    <div class="form-group">
+                        <label>Reset Token</label>
+                        <input type="text" id="resetToken" required placeholder="Dán token nhận được vào đây">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Mật khẩu mới</label>
+                        <input type="password" id="newPassword" required placeholder="••••••••" minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label>Xác nhận mật khẩu</label>
+                        <input type="password" id="confirmPassword" required placeholder="••••••••" minlength="6">
+                    </div>
+                    <button type="submit" class="btn-submit">Đặt lại mật khẩu</button>
+                    
+                    <div style="text-align: center; margin-top: 15px;">
+                        <a href="#" onclick="event.preventDefault(); resetForgotPasswordForm();" style="color: #667eea; text-decoration: none;">Yêu cầu lại?</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+
+    <div id="courseModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('course')">&times;</span>
+            <h2 id="courseTitle"></h2>
+            <div id="courseDetail"></div>
+        </div>
+    </div>
+
+    <div id="createQuizModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <span class="close-modal" onclick="closeModal('createQuiz')">&times;</span>
+            <h2>🛡️ Tạo Ngân Hàng Câu Hỏi (Bảo Mật)</h2>
+            <p style="text-align: center; color: #22543d; background: #c6f6d5; padding: 10px; border-radius: 5px; font-size: 13px; margin-bottom: 15px;">
+                <i class="fas fa-shield-alt"></i> Nội dung bạn nhập sẽ được mã hóa AES-256 trước khi lưu vào CSDL.
+            </p>
+            
+            <div class="form-group">
+                <label>Tiêu đề bài tập</label>
+                <input type="text" id="quizTitle" placeholder="Vd: Kiểm tra 15 phút Module 1">
+            </div>
+            <input type="hidden" id="quizLessonId"> 
+
+            <div id="questionsContainer">
+                </div>
+
+            <button type="button" class="btn-submit" style="background: #4a5568; margin-bottom: 10px;" onclick="addQuestionUI()">
+                <i class="fas fa-plus-circle"></i> Thêm câu hỏi
+            </button>
+            
+            <button type="button" class="btn-submit" onclick="submitCreateQuiz()">
+                <i class="fas fa-save"></i> Mã hóa & Lưu Đề Thi
+            </button>
+        </div>
+    </div>
+
+    <div id="doQuizModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <span class="close-modal" onclick="closeModal('doQuiz')">&times;</span>
+            <h2 id="doQuizTitle">Bài Tập</h2>
+            
+            <div id="quizArea" style="margin-top: 20px;">
+                </div>
+
+            <div id="quizResult" style="display:none; text-align: center; margin-top: 20px; padding: 20px; background: #f0fff4; border-radius: 10px;">
+                <h3 style="color: #2f855a;">Kết quả: <span id="scoreText"></span></h3>
+            </div>
+
+            <button id="btnSubmitQuiz" class="btn-submit" onclick="submitQuizAnswers()">Nộp bài</button>
+        </div>
+    </div>
+
+    <div id="createCourseModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('createCourse')">&times;</span>
+            <h2>Tạo Khóa Học Mới</h2>
+            <p style="color: #718096; margin-bottom: 20px; text-align: center;">Nhập thông tin khóa học bạn muốn giảng dạy.</p>
+            
+            <form onsubmit="handleCreateCourse(event)">
+                <div class="form-group">
+                    <label>Tên khóa học</label>
+                    <input type="text" id="ccTitle" required placeholder="Ví dụ: Luyện thi IELTS 7.0...">
+                </div>
+                
+                <div class="form-group">
+                    <label>Mô tả chi tiết</label>
+                    <textarea id="ccDesc" rows="3" style="width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; font-family: inherit; background: #f7fafc;" placeholder="Mô tả nội dung khóa học..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Ngôn ngữ</label>
+                    <select id="ccLang" style="width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; background: #f7fafc;">
+                        <option value="1">Tiếng Anh (English)</option>
+                        <option value="2">Tiếng Pháp (French)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Học phí (VNĐ)</label>
+                    <input type="number" id="ccFee" required placeholder="Nhập 0 nếu miễn phí" min="0" value="0">
+                </div>
+
+                <button type="submit" class="btn-submit">Hoàn tất tạo khóa học</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="teacherActions" style="display: none;">
+        <button onclick="openModal('createCourse')" style="background: #48bb78; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; margin-right: 10px;">
+            <i class="fas fa-plus-circle"></i> Tạo Khóa Học
+        </button>
+    </div>
+
+    <div id="createSecureQuizModal" class="modal">
+    <div class="modal-content" style="max-width: 800px; border: 2px solid #e53e3e;">
+        <span class="close-modal" onclick="closeModal('createSecureQuiz')">&times;</span>
+        <h2 style="color: #e53e3e;"><i class="fas fa-user-secret"></i> Tạo Đề Thi Bảo Mật</h2>
+        
+        <div class="form-group">
+            <label>Tiêu đề bài tập</label>
+            <input type="text" id="secureQuizTitle" placeholder="Vd: Bài thi cuối kỳ (Cần mật mã)">
+        </div>
+        
+        <div class="form-group" style="background: #fff5f5; padding: 15px; border-radius: 8px; border: 1px dashed #e53e3e;">
+            <label style="color: #c53030;">🔑 Mật mã truy cập (Bắt buộc)</label>
+            <input type="text" id="secureAccessCode" placeholder="Nhập mã khóa (VD: 9999)" style="border-color: #feb2b2;">
+            <small style="color: #c53030;">Sinh viên phải nhập đúng mã này mới được làm bài.</small>
+        </div>
+
+        <input type="hidden" id="secureQuizLessonId"> 
+
+        <div id="secureQuestionsContainer"></div>
+
+        <button type="button" class="btn-submit" style="background: #718096; margin-bottom: 10px;" onclick="addSecureQuestionUI()">
+            <i class="fas fa-plus-circle"></i> Thêm câu hỏi
+        </button>
+        
+        <button type="button" class="btn-submit" style="background: #e53e3e;" onclick="submitCreateSecureQuiz()">
+            <i class="fas fa-lock"></i> Lưu Đề Thi Bảo Mật
+        </button>
+    </div>
+</div>
+
+<div id="accessCodeModal" class="modal">
+    <div class="modal-content" style="max-width: 400px; text-align: center;">
+        <span class="close-modal" onclick="closeModal('accessCode')">&times;</span>
+        <h2 style="color: #e53e3e;"><i class="fas fa-lock"></i> Yêu Cầu Mật Mã</h2>
+        <p>Bài thi này được bảo vệ.</p>
+        <input type="password" id="studentAccessCode" placeholder="Nhập mã giáo viên cung cấp" 
+               style="width: 100%; padding: 12px; margin: 15px 0; border: 2px solid #cbd5e0; border-radius: 8px; text-align: center;">
+        <button class="btn-submit" onclick="verifyAndStartQuiz()">Mở Khóa</button>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsencrypt/3.3.2/jsencrypt.min.js"></script>
+
+
+	<script src="jvs.js"></script>
+</body>
+</html>
