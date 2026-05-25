@@ -36,9 +36,7 @@ CORS(app)
 # ==============================================================================
 # CAU HINH MA HOA DOI XUNG (AES) - (Thêm phần này)
 # ==============================================================================
-# !!! DÁN KEY BẠN VỪA TẠO Ở BƯỚC 2 VÀO ĐÂY !!!
-# (Lưu ý: Trong dự án thật, key này nên đọc từ biến môi trường, không nên viết cứng)
-SYMMETRIC_KEY = b'fraPEbNsFGZF9z7q-xWwcTXNUK3qxrUvFkEc7ViUVGk='  # <-- THAY THẾ KEY CỦA BẠN VÀO ĐÂY
+SYMMETRIC_KEY = b'fraPEbNsFGZF9z7q-xWwcTXNUK3qxrUvFkEc7ViUVGk='  
 
 try:
     f = Fernet(SYMMETRIC_KEY)
@@ -64,7 +62,7 @@ def decrypt_data(token_str):
         data_bytes = f.decrypt(token_str.encode('utf-8'))
         return data_bytes.decode('utf-8')
     except Exception as e:
-        # Lỗi phổ biến nhất là InvalidToken (nếu key sai hoặc dữ liệu không phải là mã hóa)
+        # nếu key sai hoặc dữ liệu không phải là mã hóa
         print(f"!!! Loi khi giai ma: {e}")
         return None
 
@@ -92,7 +90,7 @@ except Exception as e:
     PUBLIC_KEY = None
 
 # ==============================================================================
-# HAM HELPER DE TRUY VAN CSDL (Đã sửa lỗi đóng cursor)
+# HAM HELPER DE TRUY VAN CSDL 
 # ==============================================================================
 def db_query(sql, params=(), fetch_one=False):
     """
@@ -125,7 +123,7 @@ def db_query(sql, params=(), fetch_one=False):
             return {"success": True} #, "rows_affected": rowcount}
 
         # Xử lý SELECT
-        # Lấy tên cột (chỉ thực hiện nếu cursor.description không None)
+        # Lấy tên cột 
         columns = [col[0].lower() for col in cursor.description] if cursor.description else []
 
         if fetch_one:
@@ -152,11 +150,10 @@ def db_query(sql, params=(), fetch_one=False):
         print(f"!!! Params: {params}")
         print(f"!!! Loi Python: {e}")
         traceback.print_exc()
-        # Ném lỗi chung ra để Flask trả về 500
+        #trả về 500
         raise Exception(f"Lỗi server không xác định: {e}") from e
 
     finally:
-        # Đóng cursor và giải phóng kết nối LUÔN LUÔN ở đây
         if cursor:
             try: cursor.close()
             except oracledb.Error as close_err: print(f"--- Canh bao: Loi khi dong cursor: {close_err}")
@@ -173,7 +170,7 @@ def role_required(*required_roles): # Chấp nhận một hoặc nhiều vai tr�
     Cho phép truy cập nếu người dùng có BẤT KỲ vai trò nào trong danh sách required_roles.
     """
     def decorator(f):
-        @wraps(f) # Sử dụng wraps để giữ thông tin của hàm gốc
+        @wraps(f) #wraps để giữ thông tin của hàm gốc
         def decorated_function(*args, **kwargs):
             user_id_str = request.headers.get('X-User-ID') # Lấy user_id từ header
             if not user_id_str:
@@ -214,7 +211,7 @@ def role_required(*required_roles): # Chấp nhận một hoặc nhiều vai tr�
 
 
 # ==============================================================================
-# CAC API ENDPOINTS (Đã sửa lỗi và thêm API /languages)
+# CAC API ENDPOINTS
 # ==============================================================================
 
 @app.route("/api/statistics", methods=["GET"])
@@ -251,8 +248,6 @@ def get_languages():
         languages = db_query(sql)
         # db_query trả về list rỗng nếu không có data, trả về None nếu lỗi trước khi fetch
         if languages is None:
-             # Lỗi đã được db_query xử lý và ném ra, khối catch sẽ bắt
-             # Hoặc có thể trả về lỗi ở đây nếu muốn thông báo khác
              return jsonify({"error": "Không thể lấy danh sách ngôn ngữ"}), 500
         return jsonify(languages) # Trả về list (có thể rỗng)
     except Exception as e:
@@ -350,7 +345,6 @@ def create_course(current_user_id): # Nhận current_user_id từ decorator
 
     except oracledb.DatabaseError as db_err:
         error, = db_err.args
-        # Bắt lỗi trigger cụ thể
         if error.code == -20001: # Mã lỗi -20001 bạn đặt trong trigger
              print(f"--- Trigger Error (-20001) caught for user {teacher_id}.")
              return jsonify({"error": "Chỉ giáo viên mới được tạo khóa học (Lỗi Trigger)"}), 403
@@ -391,14 +385,14 @@ def get_teacher_courses(current_user_id):
         courses = db_query(sql, (current_user_id,))
         if courses is None:
              return jsonify({"error": "Không thể lấy khóa học của giáo viên"}), 500
-        return jsonify(courses) # Trả về list (có thể rỗng)
+        return jsonify(courses) # Trả về list
     except Exception as e:
         return jsonify({"error": f"Lỗi server khi lấy khóa học của giáo viên: {str(e)}"}), 500
 
 @app.route("/api/courses/<int:course_id>", methods=["GET"])
 def get_course_detail(course_id):
     try:
-        # 1. Lấy thông tin khóa học (Giữ nguyên)
+        # 1. Lấy thông tin khóa học 
         sql_course = """
             SELECT c.course_id, c.title, c.description, c.fee, u.full_name as teacher_name, l.name as language_name
             FROM Courses c
@@ -410,7 +404,7 @@ def get_course_detail(course_id):
         if not course_info:
             return jsonify({"error": "Không tìm thấy khóa học"}), 404
 
-        # 2. SỬA LẠI SQL: Lấy thêm exercise_type để phân biệt Bài thường/Bài thi
+    
         sql_modules_lessons = """
             SELECT
                 m.module_id, m.title as module_title, m.order_num as module_order,
@@ -485,7 +479,7 @@ def handle_login():
             JOIN Roles r ON ur.role_id = r.role_id
             WHERE u.user_name = :1 AND u.password_hash = HASH_PASSWORD(:2)
         """
-        # Tham số (params) giữ nguyên: (username, password)
+        # Tham số (params): (username, password)
         user = db_query(sql, (username, password), fetch_one=True)
 
         if user:
@@ -508,14 +502,14 @@ def handle_register():
     email = data.get('email')
     password = data.get('password')
 
-    # --- Validation Input ---
+    
     if not all([username, fullName, email, password]):
         return jsonify({"error": "Vui lòng điền đầy đủ thông tin"}), 400
-    if len(password) < 6: # Ví dụ kiểm tra độ dài mật khẩu
+    if len(password) < 6: 
          return jsonify({"error": "Mật khẩu phải có ít nhất 6 ký tự"}), 400
     # Thêm kiểm tra định dạng email nếu cần
 
-    connection = None # Khởi tạo để dùng trong finally
+    connection = None 
     cursor = None # Khởi tạo cursor
     try:
         # 1. Kiem tra ten dang nhap ton tai
@@ -526,7 +520,7 @@ def handle_register():
         if db_query("SELECT 1 FROM Users WHERE email = :1", (email,), fetch_one=True):
             return jsonify({"error": "Email đã được sử dụng"}), 409 # Conflict
 
-        # 3. Them user moi (Sử dụng HASH_PASSWORD)
+        # 3. Them user moi ( HASH_PASSWORD)
         connection = pool.acquire()
         cursor = connection.cursor()
         new_id_var = cursor.var(oracledb.NUMBER)
@@ -580,17 +574,17 @@ def handle_register():
         if cursor:
              try: cursor.close()
              except: pass
-        if connection: # Release nếu chưa được release ở try
+        if connection: 
              try: pool.release(connection)
              except Exception as release_err: print(f"--- Canh bao: Loi release connection trong finally (register): {release_err}")
 # ==============================================================================
-# THÊM API MỚI: XEM THÔNG BÁO (ĐỌC VÀ GIẢI MÃ) (ĐÃ SỬA DECORATOR)
+# THÊM API MỚI: XEM THÔNG BÁO (ĐỌC VÀ GIẢI MÃ) 
 # ==============================================================================
 @app.route("/api/notifications", methods=["GET"])
-@role_required('student', 'teacher', 'admin') # SỬA Ở ĐÂY: Chấp nhận 1 trong 3 vai trò
+@role_required('student', 'teacher', 'admin') 
 def get_notifications(current_user_id):
     """API lấy thông báo của người dùng (Đã giải mã)"""
-    user_id = current_user_id # DÙNG ID ĐÃ XÁC THỰC TỪ DECORATOR
+    user_id = current_user_id 
 
     try:
         # 1. Lấy dữ liệu ĐÃ MÃ HÓA từ CSDL
@@ -624,24 +618,24 @@ def get_notifications(current_user_id):
 # ==============================================================================
 # --- API Học viên ---
 @app.route("/api/enroll", methods=["POST"])
-@role_required('student') # LỚP 1: Chặn ở "cửa" API
+@role_required('student') 
 def enroll_course(current_user_id):
     """API dang ky khoa hoc."""
     data = request.json
     course_id_str = data.get('course_id')
-    user_id = current_user_id # DÙNG ID ĐÃ XÁC THỰC
+    user_id = current_user_id 
     
-    # (Thêm 1 bước validation nhỏ)
+    
     if not course_id_str:
         return jsonify({"error": "Thiếu course_id"}), 400
     try:
         course_id = int(course_id_str)
     except (ValueError, TypeError):
          return jsonify({"error": "Course ID không hợp lệ"}), 400
-    # (Kết thúc validation)
+   
 
     try:
-        # 1. Kiem tra da dang ky chua (Việc này decorator không làm)
+        # 1. Kiem tra da dang ky chua 
         sql_check = "SELECT 1 FROM DK_COURSES WHERE student_id = :1 AND course_id = :2"
         existing = db_query(sql_check, (user_id, course_id), fetch_one=True)
         if existing:
@@ -679,7 +673,7 @@ def get_dashboard(current_user_id):
     """API lay thong tin dashboard cua hoc vien."""
     user_id = current_user_id # DÙNG ID ĐÃ XÁC THỰC
     try:
-        # Câu SQL để lấy thông tin khóa học, module, lesson và progress của user
+        #lấy thông tin khóa học, module, lesson và progress của user
         sql = """
             SELECT
                 c.course_id, c.title as course_title, u.full_name as teacher_name,
@@ -701,15 +695,14 @@ def get_dashboard(current_user_id):
         if data is None: # Lỗi từ db_query
             return jsonify({"error": "Không thể lấy dữ liệu dashboard"}), 500
 
-        # Tái cấu trúc dữ liệu trả về (giữ nguyên logic)
+        # Tái cấu trúc dữ liệu trả về 
         enrolled_courses = {}
-        # ... (Phần xử lý lặp qua data và tạo cấu trúc enrolled_courses giữ nguyên) ...
         for row in data:
             course_id = row['course_id']
             if course_id not in enrolled_courses:
                  enrolled_courses[course_id] = { "course_id": course_id, "title": row['course_title'], "teacher_name": row['teacher_name'], "modules": {}, "total_lessons": 0, "completed_lessons": 0 }
 
-            # Chỉ xử lý module/lesson nếu module_id tồn tại (do LEFT JOIN)
+            #xử lý module/lesson nếu module_id tồn tại (do LEFT JOIN)
             if row['module_id'] is not None:
                 module_id = row['module_id']
                 if module_id not in enrolled_courses[course_id]['modules']:
@@ -736,7 +729,7 @@ def get_dashboard(current_user_id):
             course['overall_progress'] = round((course['completed_lessons'] / course['total_lessons']) * 100) if course['total_lessons'] > 0 else 0
             final_list.append(course)
 
-        # Sắp xếp danh sách khóa học cuối cùng (ví dụ theo ID)
+        # Sắp xếp danh sách khóa học cuối cùng 
         final_list.sort(key=lambda c: c['course_id'])
 
         return jsonify(final_list)
@@ -746,7 +739,7 @@ def get_dashboard(current_user_id):
 
 
 # ==============================================================================
-# API QUÊN MẬT KHẨU (Đã sửa để nhận user_id khi gửi lại mã)
+# API QUÊN MẬT KHẨU 
 # ==============================================================================
 @app.route("/api/forgot-password", methods=["POST"])
 def forgot_password():
@@ -776,15 +769,15 @@ def forgot_password():
     # === TAO TOKEN (JWT) ===
     try:
         payload = {
-            'sub': str(user_id), # <--- SỬA Ở ĐÂY: Chuyển user_id thành chuỗi
+            'sub': str(user_id), 
             'iat': datetime.datetime.utcnow(), # 'iat' (issued at)
             'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=15), # Het han sau 15 phut
-            'aud': 'password-reset' # 'aud' (audience) - muc dich cua token
+            'aud': 'password-reset' # 'aud' (audience)
         }
         # Ky token bang Private Key
         token = jwt.encode(payload, PRIVATE_KEY, algorithm='RS256')
         
-        # Thay vi luu code, chung ta "gui" token (in ra console)
+       
         print("========================")
         print(f"TOKEN DAT LAI MAT KHAU (DEMO) CHO {user['email']}:")
         print(token) # In ra token (day la chuoi dai)
@@ -855,7 +848,7 @@ def reset_password():
          return jsonify({"error": f"Lỗi server không xác định: {str(e)}"}), 500
         
 
-# Hàm maskEmail (giữ nguyên)
+# Hàm maskEmail
 def maskEmail(email):
     if not isinstance(email, str) or '@' not in email: return "***" # Xử lý email không hợp lệ
     parts = email.split('@')
@@ -881,7 +874,7 @@ def handle_exception(e):
     return response
 
 # ==============================================================================
-# NGHIỆP VỤ BẢO MẬT: CHỐNG LỘ ĐỀ THI (Question Bank Security)
+# NGHIỆP VỤ BẢO MẬT: CHỐNG LỘ ĐỀ THI 
 # ==============================================================================
 import json
 
@@ -906,11 +899,11 @@ def create_exercise(current_user_id):
     except Exception as e:
         return jsonify({"error": "Dữ liệu câu hỏi không đúng định dạng JSON"}), 400
 
-    # 2. MÃ HÓA NỘI DUNG (QUAN TRỌNG)
+    # 2. MÃ HÓA NỘI DUNG 
     # Chỉ có server giữ Key này mới giải mã được. DBA mở bảng ra chỉ thấy chuỗi ký tự lộn xộn.
     encrypted_content = encrypt_data(json_str)
     
-    # --- THÊM ĐOẠN NÀY ĐỂ KIỂM TRA ---
+ 
     print("\n" + "="*40)
     print("🔍 [KIỂM TRA BẢO MẬT] ĐANG TẠO ĐỀ THI:")
     print(f"➤ Nội dung gốc (JSON): {json_str}")
@@ -1027,7 +1020,7 @@ def get_public_key():
         return jsonify({"public_key": PUBLIC_KEY.decode('utf-8')})
     return jsonify({"error": "Server chưa cấu hình Key"}), 500
 
-# --- API MỚI 3: Xác thực Mật mã (Hybrid Decryption) ---
+# --- API MỚI 3: Xác thực Mật mã  ---
 @app.route("/api/exercises/verify", methods=["POST"])
 @role_required('student')
 def verify_exercise_access(current_user_id):
@@ -1066,9 +1059,9 @@ def verify_exercise_access(current_user_id):
             padding.PKCS1v15()
         )
         
-        # --- [FIX LỖI INVALID KEY SIZE] ---
-        # Frontend gửi Key dưới dạng Base64 (44 chars), nhưng AES cần 32 bytes raw.
-        # Ta phải decode Base64 một lần nữa để lấy lại Key gốc 32 bytes.
+    
+       
+    
         try:
             aes_key = base64.b64decode(aes_key_base64_bytes)
         except Exception:
@@ -1100,7 +1093,7 @@ def verify_exercise_access(current_user_id):
         if not row: 
             return jsonify({"error": "Bài tập không tồn tại"}), 404
             
-        # Nếu trong DB không có code (NULL) -> Bài này không khóa -> OK luôn
+        # Nếu trong DB không có code (NULL) -> Bài này không khóa -> OK 
         if not row['access_code']:
              return jsonify({"success": True, "message": "Bài tập không có mật mã"})
 
@@ -1115,7 +1108,7 @@ def verify_exercise_access(current_user_id):
     except Exception as e:
         print(f"Lỗi verify chi tiết: {e}")
         import traceback
-        traceback.print_exc() # In lỗi đầy đủ ra terminal
+        traceback.print_exc() 
         return jsonify({"error": f"Lỗi xác thực: {str(e)}"}), 400
 # ==============================================================================
 # CHAY MAY CHU
