@@ -1,4 +1,4 @@
-// Dia chi Back-end Python cua ban (ĐÃ CHẮC CHẮN LÀ CỔNG 5000)
+// Dia chi API
 const API_URL = 'http://localhost:5000/api';
 
 // Bien toan cuc de giu thong tin nguoi dung da dang nhap
@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
     checkSession(); 
     initMobileMenu();
     initScrollTopButton();
-    // Gọi loadStatistics và loadCourses nếu chưa đăng nhập (checkSession không làm)
+    // Gọi loadStatistics và loadCourses nếu chưa đăng nhập 
     if (!currentUser) {
         loadStatistics();
         loadCourses();
@@ -158,7 +158,7 @@ async function openCourseDetail(courseId) {
                                 </div>
                             `; 
                         } 
-                        // --- LOGIC CHO HỌC VIÊN (SỬA LỖI Ở ĐÂY) ---
+                        // --- LOGIC CHO HỌC VIÊN  ---
                         else if (role === 'student') {
                             if (lesson.exercise_id) {
                                 // console.log("Bài tập:", lesson.title, "Loại:", lesson.exercise_type); // Bật dòng này để debug nếu cần
@@ -258,7 +258,7 @@ async function enrollCourse(courseId) {
     }
 
     try {
-        // (SỬA LỖI BẢO MẬT)
+        // 
         const response = await fetch(`${API_URL}/enroll`, {
             method: 'POST',
             headers: getApiHeaders(), // Dùng header đã xác thực
@@ -308,7 +308,7 @@ async function handleLogin(event) {
     try {
         const response = await fetch(`${API_URL}/login`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' }, // Login không cần header xác thực
+            headers: { 'Content-Type': 'application/json' }, 
             body: JSON.stringify({ username, password })
         });
         
@@ -426,15 +426,14 @@ async function handleForgotPassword(event) {
         const result = await response.json();
         
         if (response.ok && result.success) {
-            // KHÔNG LƯU user_id nua
-            // forgotPasswordUser = { user_id: result.user_id }; // <-- XÓA DÒNG NÀY
+         
             
             showAlert('forgotAlert', `Yêu cầu thành công. Kiểm tra console server (demo) để lấy Token!`, 'success');
             
             // 2. Chuyen sang BUOC 3 (Nhap Token + MK moi)
             setTimeout(() => {
                 document.getElementById('forgotStep1').style.display = 'none';
-                //document.getElementById('forgotStep2').style.display = 'none'; // An buoc 2 (neu con)
+                //document.getElementById('forgotStep2').style.display = 'none'; 
                 document.getElementById('forgotStep3').style.display = 'block'; // Hien buoc 3
                 
                 // Hien thi thong bao email da mask
@@ -453,7 +452,7 @@ async function handleForgotPassword(event) {
         showAlert('forgotAlert', 'Lỗi kết nối! Vui lòng thử lại.', 'error');
     } finally {
          forgotButton.disabled = false;
-         forgotButton.textContent = 'Gửi yêu cầu Token'; // Sửa text nút
+         forgotButton.textContent = 'Gửi yêu cầu Token';
     }
 }
 
@@ -461,7 +460,7 @@ async function handleResetPassword(event) {
     event.preventDefault();
     
     // 1. Lay them TOKEN tu form
-    const token = document.getElementById('resetToken').value.trim(); // <-- THÊM MỚI
+    const token = document.getElementById('resetToken').value.trim(); 
     const newPassword = document.getElementById('newPassword').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
     const resetButton = event.target.querySelector('.btn-submit');
@@ -480,8 +479,7 @@ async function handleResetPassword(event) {
         return;
     }
     
-    // KHONG CON CAN 'forgotPasswordUser'
-    // if (!forgotPasswordUser || !forgotPasswordUser.user_id) { ... } // <-- XÓA KHỐI LỆNH NÀY
+    
 
     resetButton.disabled = true;
     resetButton.textContent = 'Đang đặt lại...';
@@ -542,7 +540,7 @@ function resetForgotPasswordForm() {
     if (formStep3) formStep3.reset();
     
     document.getElementById('forgotAlert').innerHTML = '';
-    // forgotPasswordUser = null; // <-- XÓA DÒNG NÀY
+   
 }
 
 
@@ -599,7 +597,7 @@ async function loadDashboard() {
     updateUserStats('...', '...'); 
 
     try {
-        // (SỬA LỖI BẢO MẬT)
+ 
         const response = await fetch(`${API_URL}/dashboard`, {
             method: 'GET',
             headers: getApiHeaders() // Dùng header đã xác thực
@@ -700,7 +698,6 @@ async function loadDashboard() {
     }
 }
 
-// (SỬA LỖI LOGIC) Di chuyển hàm này ra ngoài scope global
 /************************************************************
  * (Hàm mới) Tải thông báo của người dùng và in ra console
  * @param {number} userId ID của người dùng (để kiểm tra)
@@ -714,7 +711,7 @@ async function loadUserNotifications(userId) {
 
     console.log("Đang tải thông báo cho user:", userId);
     try {
-        // (SỬA LỖI CÚ PHÁP & BẢO MẬT)
+  
         const response = await fetch(`${API_URL}/notifications`, {
             method: 'GET',
             headers: getApiHeaders() // Dùng hàm helper (đã có X-User-ID)
@@ -1040,7 +1037,7 @@ function initScrollTopButton() {
 // LOGIC NGHIỆP VỤ BẢO MẬT & BÀI TẬP
 // ================================================================
 
-// --- PHẦN 1: GIÁO VIÊN TẠO ĐỀ (UI ĐỘNG) ---
+// --- PHẦN 1: GIÁO VIÊN TẠO ĐỀ ---
 
 // Biến lưu danh sách câu hỏi tạm thời
 let tempQuestions = [];
@@ -1359,13 +1356,7 @@ let pendingQuizId = null;
 // Hàm kiểm tra khi bấm nút "Làm bài"
 async function checkAndOpenQuiz(exerciseId) {
     pendingQuizId = exerciseId;
-    // Ở đây để đơn giản: Chúng ta sẽ thử gọi API lấy đề trước.
-    // Nếu API trả về lỗi (hoặc logic backend trả cờ báo cần pass), ta mới hiện modal.
-    // Nhưng do bạn muốn tách biệt, tôi sẽ làm luồng giả định:
-    // Ta sẽ mở Modal nhập mã luôn. Nếu người dùng nhập sai hoặc đề không có pass thì API verify sẽ báo.
-    // (Trong thực tế, bạn nên có 1 API check status trước).
-    
-    // Tạm thời: Mở luôn modal nhập mã cho ngầu
+   
     openModal('accessCode');
 }
 
@@ -1404,12 +1395,12 @@ async function verifyAndStartQuiz() {
         const verifyResult = await verifyRes.json();
 
         if (verifyRes.ok && verifyResult.success) {
-            // 4. Nếu đúng pass, mở bài thi (Hàm cũ)
+            // 4. Nếu đúng pass, mở bài thi 
             closeModal('accessCode');
             openDoQuiz(pendingQuizId); // Gọi lại hàm cũ để tải đề
         } else {
             alert("⛔ Mật mã không đúng! (Hoặc đề này là đề thường, hãy thử vào trực tiếp)");
-            // Fallback: Nếu đề thường mà lỡ bấm vào đây, thử mở luôn
+
             if (verifyResult.error && verifyResult.error.includes("không có mật mã")) {
                  closeModal('accessCode');
                  openDoQuiz(pendingQuizId);
